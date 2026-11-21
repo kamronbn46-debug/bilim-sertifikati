@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bilim Sertifikati — Matematika</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+    body {
+      margin: 0; padding: 16px;
+      background: #0f172a; color: #f8fafc;
+      display: flex; justify-content: center; align-items: center; min-height: 100vh;
+    }
+    .card {
+      width: 100%; max-width: 480px;
+      background: #1e293b; border-radius: 20px; padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      border: 1px solid #334155;
+    }
+    .badge {
+      display: inline-block; background: #2563eb; color: #fff;
+      padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
+    }
+    h1 { font-size: 22px; margin: 12px 0 8px; }
+    p { color: #cbd5e1; font-size: 14px; line-height: 1.5; }
+    .top-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #0f172a; padding: 12px 16px; border-radius: 12px; margin-bottom: 18px;
+    }
+    .timer { font-weight: 700; color: #38bdf8; font-size: 18px; }
+    .progress { font-size: 14px; color: #94a3b8; font-weight: 600; }
+    .question-text { font-size: 18px; font-weight: 600; margin-bottom: 16px; line-height: 1.4; }
+    .option {
+      display: block; width: 100%; text-align: left;
+      background: #0f172a; color: #f8fafc; border: 1.5px solid #334155;
+      padding: 14px 16px; border-radius: 12px; margin-bottom: 10px;
+      font-size: 15px; cursor: pointer; transition: 0.2s;
+    }
+    .option:hover { border-color: #38bdf8; }
+    .option.selected { background: #1d4ed8; border-color: #60a5fa; font-weight: 600; }
+    .btn {
+      width: 100%; padding: 14px; border: none; border-radius: 12px;
+      background: #2563eb; color: white; font-size: 16px; font-weight: 700;
+      cursor: pointer; margin-top: 10px; text-decoration: none; display: inline-block; text-align: center;
+    }
+    .btn:hover { background: #1d4ed8; }
+    .btn-green { background: #16a34a; }
+    .btn-green:hover { background: #15803d; }
+    .input {
+      width: 100%; padding: 13px; border-radius: 12px; border: 1.5px solid #334155;
+      background: #0f172a; color: #fff; font-size: 15px; margin: 10px 0 14px;
+    }
+    .box {
+      background: #0f172a; border: 1px dashed #38bdf8; padding: 14px;
+      border-radius: 12px; margin: 12px 0; font-size: 14px; line-height: 1.6;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <!-- 1. BOSHLANG'ICH OYNA -->
+  <div id="start-screen">
+    <span class="badge">BILIM SERTIFIKATI</span>
+    <h1>Matematika Sinovi (20/20)</h1>
+    <p>
+      • Savollar soni: <b>20 ta</b><br>
+      • Berilgan vaqt: <b>20 daqiqa</b><br>
+      • Sertifikat sharti: <b>20 tadan 20 ta to'g'ri javob</b><br>
+      • 20/20 natija qilsangiz, 5 000 so'm to'lov qilib chek va ism-familiyangizni yuborasiz — admin tekshirib shaxsiy sertifikatingizni taqdim etadi!
+    </p>
+    <button class="btn" onclick="startQuiz()">Testni boshlash</button>
+  </div>
+
+  <!-- 2. TEST OYNASI -->
+  <div id="quiz-screen" class="hidden">
+    <div class="top-bar">
+      <div class="progress" id="progress">1 / 20</div>
+      <div class="timer" id="timer">20:00</div>
+    </div>
+    <div class="question-text" id="question-text"></div>
+    <div id="options"></div>
+    <button class="btn" id="next-btn" onclick="nextQuestion()">Keyingi savol</button>
+  </div>
+
+  <!-- 3. NATIJA (20/20 BO'LMASA) -->
+  <div id="fail-screen" class="hidden">
+    <span class="badge" style="background:#dc2626;">NATIJA</span>
+    <h1 id="fail-title">Natija: 0 / 20</h1>
+    <p id="fail-desc">Sertifikat olish uchun 20 daqiqa ichida barcha 20 ta savolga to'g'ri javob berishingiz kerak. Yana urinib ko'ring!</p>
+    <button class="btn" onclick="location.reload()">Qaytadan boshlash</button>
+  </div>
+
+  <!-- 4. G'OLIB (20/20 NATIJA) -->
+  <div id="win-screen" class="hidden">
+    <span class="badge" style="background:#16a34a;">TABRIKLAYMIZ! 20 / 20</span>
+    <h1>Siz barcha testlarni topdingiz!</h1>
+    <p>Sertifikat olish uchun quyidagi 3 qadamni bajaring:</p>
+    <div class="box">
+      <b>1. To'lov miqdori:</b> 5 000 so'm<br>
+      <b>2. Karta raqami:</b> <span id="card-number" style="color:#38bdf8; font-weight:700;"></span><br>
+      <b>3. Ism va familiyangizni kiriting:</b>
+    </div>
+    <input type="text" id="fullname" class="input" placeholder="Masalan: Aliyev Vali" />
+    <p style="font-size:13px; color:#94a3b8;">
+      Quyidagi tugmani bosing, tayyor xabar bilan admin chatiga o'tasiz — o'sha yerda <b>to'lov cheki rasmini</b> ham birga yuboring:
+    </p>
+    <button class="btn btn-green" onclick="sendToAdmin()">Chek va Ism-familiyani yuborish</button>
+  </div>
+</div>
+
+<script>
+  // === O'ZINGIZNING MA'LUMOTLARINGIZNI SHU YERGA YOZING ===
+  const KARTA_RAQAMI = "6262 5700 9803 5878"; // O'zingizning karta raqamingizni yozing
+  const ADMIN_USERNAME = "KAMRONBEKNM"; // @ belgisiz Telegram username'ingizni yozing
+
+  const questions = [
+    { q: "125 + 378 = ?", options: ["493", "503", "513", "483"], answer: 1 },
+    { q: "14 × 15 nechaga teng?", options: ["190", "200", "210", "220"], answer: 2 },
+    { q: "864 ÷ 12 = ?", options: ["68", "72", "74", "76"], answer: 1 },
+    { q: "250 sonining 20% i nechaga teng?", options: ["40", "45", "50", "60"], answer: 2 },
+    { q: "3x + 15 = 60 tenglamadan x ni toping.", options: ["10", "12", "15", "20"], answer: 2 },
+    { q: "2⁵ (2 ning 5-darajasi) nechaga teng?", options: ["10", "16", "25", "32"], answer: 3 },
+    { q: "Kvadratning perimetri 36 sm bo'lsa, bir tomoni necha sm?", options: ["6 sm", "9 sm", "12 sm", "18 sm"], answer: 1 },
+    { q: "Tomonlari 8 sm va 5 sm bo'lgan to'g'ri to'rtburchakning yuzi qancha?", options: ["13 sm²", "26 sm²", "40 sm²", "80 sm²"], answer: 2 },
+    { q: "0,4 + 0,75 = ?", options: ["1,05", "1,15", "1,25", "0,79"], answer: 1 },
+    { q: "18 va 24 sonlarining EKUBi nechaga teng?", options: ["3", "6", "12", "72"], answer: 1 },
+    { q: "6 va 8 sonlarining EKUKi nechaga teng?", options: ["14", "16", "24", "48"], answer: 2 },
+    { q: "√144 nechaga teng?", options: ["11", "12", "13", "14"], answer: 1 },
+    { q: "Poyezd 2 soatda 140 km yo'l bosdi. Tezligi qancha?", options: ["60 km/soat", "65 km/soat", "70 km/soat", "75 km/soat"], answer: 2 },
+    { q: "80 000 so'mlik mahsulot 10% arzonlashdi. Yangi narxi qancha?", options: ["70 000 so'm", "72 000 so'm", "75 000 so'm", "78 000 so'm"], answer: 1 },
+    { q: "5x − 7 = 23 bo'lsa, x nechaga teng?", options: ["4", "5", "6", "7"], answer: 2 },
+    { q: "Uchburchakning ikki burchagi 50° va 70° bo'lsa, uchinchi burchagi qancha?", options: ["50°", "60°", "70°", "80°"], answer: 1 },
+    { q: "3/4 kasr o'nli kasrda qanday yoziladi?", options: ["0,25", "0,34", "0,75", "1,25"], answer: 2 },
+    { q: "3 ta daftar 18 000 so'm tursa, 7 ta daftar qancha turadi?", options: ["36 000 so'm", "40 000 so'm", "42 000 so'm", "48 000 so'm"], answer: 2 },
+    { q: "Ketma-ketlikni davom ettiring: 2, 6, 18, 54, ?", options: ["108", "126", "162", "216"], answer: 2 },
+    { q: "(-15) + 28 = ?", options: ["-43", "-13", "13", "43"], answer: 2 }
+  ];
+
+  let current = 0;
+  let score = 0;
+  let selected = null;
+  let timeLeft = 20 * 60; // 20 daqiqa
+  let timerInterval;
+
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+  }
+
+  document.getElementById("card-number").innerText = KARTA_RAQAMI;
+
+  function startQuiz() {
+    document.getElementById("start-screen").classList.add("hidden");
+    document.getElementById("quiz-screen").classList.remove("hidden");
+    showQuestion();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      let m = Math.floor(timeLeft / 60);
+      let s = timeLeft % 60;
+      document.getElementById("timer").innerText = `${m}:${s < 10 ? "0" : ""}${s}`;
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        finishQuiz(true);
+      }
+    }, 1000);
+  }
+
+  function showQuestion() {
+    selected = null;
+    const item = questions[current];
+    document.getElementById("progress").innerText = `${current + 1} / ${questions.length}`;
+    document.getElementById("question-text").innerText = `${current + 1}. ${item.q}`;
+    const optionsDiv = document.getElementById("options");
+    optionsDiv.innerHTML = "";
+    item.options.forEach((opt, idx) => {
+      const btn = document.createElement("button");
+      btn.className = "option";
+      btn.innerText = opt;
+      btn.onclick = () => {
+        selected = idx;
+        document.querySelectorAll(".option").forEach(b => b.classList.remove("selected"));
+        btn.classList.add("selected");
+      };
+      optionsDiv.appendChild(btn);
+    });
+    document.getElementById("next-btn").innerText = current === questions.length - 1 ? "Testni yakunlash" : "Keyingi savol";
+  }
+
+  function nextQuestion() {
+    if (selected === null) {
+      alert("Iltimos, variantlardan birini tanlang!");
+      return;
+    }
+    if (selected === questions[current].answer) score++;
+    current++;
+    if (current < questions.length) {
+      showQuestion();
+    } else {
+      clearInterval(timerInterval);
+      finishQuiz(false);
+    }
+  }
+
+  function finishQuiz(timeOver) {
+    document.getElementById("quiz-screen").classList.add("hidden");
+    if (score === questions.length && !timeOver) {
+      document.getElementById("win-screen").classList.remove("hidden");
+    } else {
+      document.getElementById("fail-screen").classList.remove("hidden");
+      document.getElementById("fail-title").innerText = timeOver ? `Vaqt tugadi! Natija: ${score} / 20` : `Natija: ${score} / 20`;
+    }
+  }
+
+  function sendToAdmin() {
+    const name = document.getElementById("fullname").value.trim();
+    if (!name) {
+      alert("Iltimos, ism va familiyangizni kiriting!");
+      return;
+    }
+    const text = encodeURIComponent(
+      `Assalomu alaykum! Men "Bilim Sertifikati" matematika testidan 20/20 natija qildim.\n\n` +
+      `👤 Ism-familiya: ${name}\n` +
+      `💰 To'lov: 5 000 so'm (chekni hozir yuboraman)`
+    );
+    window.open(`https://t.me/${ADMIN_USERNAME}?text=${text}`, "_blank");
+  }
+</script> 
+</body>
+</html>
+  
